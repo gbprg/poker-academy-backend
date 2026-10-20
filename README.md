@@ -27,6 +27,12 @@ A API usa o prefixo `/api`:
 
 O health check consulta o PostgreSQL e devolve erro sanitizado quando o banco esta indisponivel.
 
+As tabelas de identidade usam `citext` no PostgreSQL para garantir unicidade de
+e-mail sem diferenciar maiusculas de minusculas. Segredos de ativacao sao
+persistidos somente como hashes SHA-256 de consulta. As FKs de ativacoes e
+sessoes usam `RESTRICT` para impedir a remocao acidental do historico. Hash de
+senha e fluxos publicos de autenticacao entram nas tasks P02-T02/T03.
+
 ## Verificacao
 
 ```bash

@@ -6,3 +6,56 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum UserStatus {
+  INVITED
+  ACTIVE
+  BLOCKED
+}
+
+model User {
+  id                String              @id @default(uuid()) @db.Uuid
+  name              String              @db.VarChar(120)
+  email             String              @unique @db.Citext
+  passwordHash      String?             @db.VarChar(255)
+  role              UserRole            @default(USER)
+  status            UserStatus          @default(INVITED)
+  passwordChangedAt DateTime?           @db.Timestamptz(3)
+  createdAt         DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime            @updatedAt @db.Timestamptz(3)
+  activations       AccountActivation[]
+  sessions          AuthSession[]
+
+  @@index([status, role])
+}
+
+model AccountActivation {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  tokenHash  String    @unique @db.Char(64)
+  expiresAt  DateTime  @db.Timestamptz(3)
+  consumedAt DateTime? @db.Timestamptz(3)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, expiresAt])
+}
+
+model AuthSession {
+  id            String    @id @default(uuid()) @db.Uuid
+  jti           String    @unique @db.Uuid
+  userId        String    @db.Uuid
+  issuedAt      DateTime  @db.Timestamptz(3)
+  expiresAt     DateTime  @db.Timestamptz(3)
+  revokedAt     DateTime? @db.Timestamptz(3)
+  userAgentHash String?   @db.Char(64)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, issuedAt])
+  @@index([expiresAt, revokedAt])
+}
