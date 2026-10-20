@@ -1,0 +1,2 @@
+-- Baseline intencionalmente sem tabelas.
+-- A primeira migration de dominio sera criada em P02-T01.
