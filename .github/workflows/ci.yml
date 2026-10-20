@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: postgresql://poker_academy:poker_academy_ci@localhost:5432/poker_academy?schema=public
+      NODE_ENV: test
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: poker_academy
+          POSTGRES_PASSWORD: poker_academy_ci
+          POSTGRES_DB: poker_academy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U poker_academy -d poker_academy"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Generate database client
+        run: npm run db:generate
+
+      - name: Apply migrations
+        run: npm run db:deploy
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Integration tests
+        run: npm run test:e2e
+
+      - name: Production build
+        run: npm run build
+
+      - name: Dependency audit
+        run: npm audit --audit-level=high

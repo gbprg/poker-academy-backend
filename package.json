@@ -12,6 +12,7 @@
   },
   "scripts": {
     "build": "prisma generate && nest build",
+    "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
