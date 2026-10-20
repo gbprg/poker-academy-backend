@@ -12,6 +12,7 @@
   },
   "scripts": {
     "build": "prisma generate && nest build",
+    "bootstrap:admin": "npm run build && node dist/scripts/bootstrap-admin.js",
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -32,10 +33,12 @@
     "@nestjs/common": "^12.0.1",
     "@nestjs/config": "^12.0.1",
     "@nestjs/core": "^12.0.1",
+    "@nestjs/jwt": "^12.0.3",
     "@nestjs/platform-express": "^12.0.1",
     "@nestjs/swagger": "^12.0.2",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "argon2": "^0.45.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "dotenv": "^18.0.8",
@@ -64,6 +67,7 @@
     "vitest": "^4.1.2"
   },
   "allowScripts": {
+    "argon2": true,
     "prisma@7.10.1": true,
     "@prisma/engines@7.10.1": true,
     "@scarf/scarf": false

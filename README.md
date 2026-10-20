@@ -30,8 +30,24 @@ O health check consulta o PostgreSQL e devolve erro sanitizado quando o banco es
 As tabelas de identidade usam `citext` no PostgreSQL para garantir unicidade de
 e-mail sem diferenciar maiusculas de minusculas. Segredos de ativacao sao
 persistidos somente como hashes SHA-256 de consulta. As FKs de ativacoes e
-sessoes usam `RESTRICT` para impedir a remocao acidental do historico. Hash de
-senha e fluxos publicos de autenticacao entram nas tasks P02-T02/T03.
+sessoes usam `RESTRICT` para impedir a remocao acidental do historico. Senhas de
+ADMIN usam Argon2id; login e ativacao entram na task P02-T03.
+
+## Primeiro administrador
+
+O bootstrap nao possui endpoint HTTP e nao usa credenciais padrao:
+
+```bash
+BOOTSTRAP_ADMIN_NAME='Nome' \
+BOOTSTRAP_ADMIN_EMAIL='admin@example.com' \
+BOOTSTRAP_ADMIN_PASSWORD='senha privada longa' \
+npm run bootstrap:admin
+```
+
+O comando e idempotente para um ADMIN ja ativo e nunca imprime a senha ou o
+hash. Depois do bootstrap, `POST /api/admin/users` exige uma sessao ADMIN valida
+e devolve o link privado de ativacao somente na resposta de criacao. Nao existe
+rota publica de cadastro.
 
 ## Verificacao
 

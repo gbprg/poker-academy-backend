@@ -28,7 +28,7 @@ type CreateSessionInput = {
   userAgentHash?: string;
 };
 
-const publicUserSelect = {
+export const publicUserSelect = {
   id: true,
   name: true,
   email: true,
