@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1.0.0",
+  "spotId": "invalid-dup-board",
+  "format": "MTT",
+  "tableSize": 9,
+  "valuation": "CHIP_EV",
+  "street": "FLOP",
+  "blinds": {
+    "smallBlind": 0.5,
+    "bigBlind": 1,
+    "anteType": "NONE",
+    "anteValue": 0
+  },
+  "seats": [
+    {
+      "seat": 7,
+      "position": "BTN",
+      "stack": {
+        "chips": 40,
+        "bb": 40
+      },
+      "isHero": true,
+      "isActive": true
+    },
+    {
+      "seat": 9,
+      "position": "BB",
+      "stack": {
+        "chips": 39,
+        "bb": 39
+      },
+      "isHero": false,
+      "isActive": true
+    }
+  ],
+  "hero": {
+    "seat": 7,
+    "position": "BTN",
+    "handClass": "AKs",
+    "holeCards": [
+      "As",
+      "Ks"
+    ]
+  },
+  "board": [
+    "Ah",
+    "Ah",
+    "2d"
+  ],
+  "history": [
+    {
+      "street": "PREFLOP",
+      "actions": [
+        {
+          "seat": 7,
+          "position": "BTN",
+          "action": "RAISE",
+          "amountTo": 2.5,
+          "increment": 2.5
+        },
+        {
+          "seat": 9,
+          "position": "BB",
+          "action": "CALL",
+          "amountTo": 2.5,
+          "increment": 1.5
+        }
+      ]
+    },
+    {
+      "street": "FLOP",
+      "actions": [
+        {
+          "seat": 9,
+          "position": "BB",
+          "action": "CHECK",
+          "amountTo": 0,
+          "increment": 0
+        }
+      ]
+    }
+  ],
+  "pot": {
+    "chips": 5.5,
+    "chipsAtStreetStart": 5
+  },
+  "legalActions": [
+    "CHECK",
+    "BET",
+    "ALL_IN"
+  ],
+  "demoLabel": "DEMO_NOT_GTO"
+}

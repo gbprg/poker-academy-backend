@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "1.0.0",
+  "spotId": "invalid-pko-no-bounty",
+  "format": "MTT",
+  "tableSize": 9,
+  "valuation": "PKO",
+  "street": "PREFLOP",
+  "blinds": {
+    "smallBlind": 0.5,
+    "bigBlind": 1,
+    "anteType": "BB_ANTE",
+    "anteValue": 1
+  },
+  "seats": [
+    {
+      "seat": 1,
+      "position": "UTG",
+      "stack": {
+        "chips": 20,
+        "bb": 20
+      },
+      "isHero": false,
+      "isActive": true
+    },
+    {
+      "seat": 2,
+      "position": "UTG1",
+      "stack": {
+        "chips": 20,
+        "bb": 20
+      },
+      "isHero": false,
+      "isActive": true
+    },
+    {
+      "seat": 3,
+      "position": "MP",
+      "stack": {
+        "chips": 20,
+        "bb": 20
+      },
+      "isHero": false,
+      "isActive": true
+    },
+    {
+      "seat": 4,
+      "position": "MP1",
+      "stack": {
+        "chips": 20,
+        "bb": 20
+      },
+      "isHero": false,
+      "isActive": true
+    },
+    {
+      "seat": 5,
+      "position": "HJ",
+      "stack": {
+        "chips": 20,
+        "bb": 20
+      },
+      "isHero": false,
+      "isActive": true
+    },
+    {
+      "seat": 6,
+      "position": "CO",
+      "stack": {
+        "chips": 20,
+        "bb": 20
+      },
+      "isHero": false,
+      "isActive": true
+    },
+    {
+      "seat": 7,
+      "position": "BTN",
+      "stack": {
+        "chips": 20,
+        "bb": 20
+      },
+      "isHero": true,
+      "isActive": true
+    },
+    {
+      "seat": 8,
+      "position": "SB",
+      "stack": {
+        "chips": 20,
+        "bb": 20
+      },
+      "isHero": false,
+      "isActive": true
+    },
+    {
+      "seat": 9,
+      "position": "BB",
+      "stack": {
+        "chips": 20,
+        "bb": 20
+      },
+      "isHero": false,
+      "isActive": true
+    }
+  ],
+  "hero": {
+    "seat": 7,
+    "position": "BTN",
+    "handClass": "AA"
+  },
+  "board": [],
+  "history": [
+    {
+      "street": "PREFLOP",
+      "actions": [
+        {
+          "seat": 8,
+          "position": "SB",
+          "action": "CALL",
+          "amountTo": 0.5,
+          "increment": 0.5
+        },
+        {
+          "seat": 9,
+          "position": "BB",
+          "action": "CHECK",
+          "amountTo": 1,
+          "increment": 0
+        }
+      ]
+    }
+  ],
+  "pot": {
+    "chips": 2.5,
+    "chipsAtStreetStart": 1.5
+  },
+  "legalActions": [
+    "FOLD",
+    "RAISE",
+    "ALL_IN"
+  ],
+  "demoLabel": "DEMO_NOT_GTO",
+  "payout": {
+    "remainingPlayers": 9,
+    "paidPositions": 3,
+    "prizes": [
+      10,
+      6,
+      4
+    ]
+  }
+}

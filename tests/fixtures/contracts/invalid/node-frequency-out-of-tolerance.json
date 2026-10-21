@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0.0",
+  "nodeId": "invalid-freq-sum",
+  "spotId": "demo-rfi-btn-20bb-9max-mtt",
+  "strategyVersionId": "demo-strategy-rfi-btn-20bb-v1",
+  "tolerance": 0.001,
+  "actions": [
+    {
+      "combo": "AA",
+      "actionType": "RAISE",
+      "sizing": 2,
+      "frequency": 1,
+      "evNullable": null,
+      "unitNullable": null
+    },
+    {
+      "combo": "KK",
+      "actionType": "RAISE",
+      "sizing": 2,
+      "frequency": 1,
+      "evNullable": null,
+      "unitNullable": null
+    },
+    {
+      "combo": "AKs",
+      "actionType": "RAISE",
+      "sizing": 2,
+      "frequency": 0.5,
+      "evNullable": null,
+      "unitNullable": null
+    },
+    {
+      "combo": "AKs",
+      "actionType": "FOLD",
+      "frequency": 0.2,
+      "evNullable": null,
+      "unitNullable": null
+    }
+  ]
+}

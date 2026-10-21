@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0.0",
+  "strategyVersionId": "demo-strategy-rfi-btn-20bb-v1",
+  "spotId": "demo-rfi-btn-20bb-9max-mtt",
+  "sourceId": "demo-synthetic",
+  "status": "EXPERIMENTAL",
+  "method": "DEMO_NOT_GTO",
+  "model": "CHIP_EV",
+  "versionTag": "v1-demo",
+  "checksum": "0000000000000000000000000000000000000000000000000000000000000000",
+  "validationEvidence": ["synthetic fixture only; not a GTO or solver output"],
+  "demoLabel": "DEMO_NOT_GTO"
+}

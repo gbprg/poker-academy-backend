@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "nodeId": "invalid-call-sizing",
+  "spotId": "demo-rfi-btn-20bb-9max-mtt",
+  "strategyVersionId": "demo-strategy-rfi-btn-20bb-v1",
+  "tolerance": 0.001,
+  "actions": [
+    {
+      "combo": "AA",
+      "actionType": "CALL",
+      "amountTo": 0,
+      "increment": 0,
+      "frequency": 1
+    }
+  ]
+}
