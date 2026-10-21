@@ -7,6 +7,7 @@ import { configureApplication } from './../src/common/configure-application.js';
 
 process.env.DATABASE_URL ??=
   'postgresql://poker_academy:poker_academy_local@localhost:55432/poker_academy?schema=public';
+process.env.FRONTEND_ORIGIN ??= 'http://localhost:5173';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -44,6 +45,27 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/api/health')
       .expect('x-content-type-options', 'nosniff');
+  });
+
+  it('sets a strict referrer policy on API responses', () => {
+    return request(app.getHttpServer())
+      .get('/api/health')
+      .expect('referrer-policy', 'no-referrer');
+  });
+
+  it('allows the configured frontend origin via CORS without credentials', async () => {
+    const allowed = await request(app.getHttpServer())
+      .get('/api/health')
+      .set('Origin', 'http://localhost:5173')
+      .expect(200);
+    expect(allowed.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+    expect(allowed.headers['access-control-allow-credentials']).toBeUndefined();
+
+    const blocked = await request(app.getHttpServer())
+      .get('/api/health')
+      .set('Origin', 'https://evil.example.com')
+      .expect(200);
+    expect(blocked.headers['access-control-allow-origin']).toBeUndefined();
   });
 
   afterEach(async () => {
