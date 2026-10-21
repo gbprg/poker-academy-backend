@@ -10,11 +10,20 @@ const passwordHashOptions = {
 
 @Injectable()
 export class PasswordService {
+  private readonly dummyHash = hash('dummy-password-never-used-for-login', passwordHashOptions);
+
   hash(password: string): Promise<string> {
     return hash(password, passwordHashOptions);
   }
 
   verify(passwordHash: string, candidate: string): Promise<boolean> {
     return verify(passwordHash, candidate);
+  }
+
+  async verifyOrDummy(
+    passwordHash: string | null,
+    candidate: string,
+  ): Promise<boolean> {
+    return verify(passwordHash ?? (await this.dummyHash), candidate);
   }
 }

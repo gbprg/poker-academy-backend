@@ -10,6 +10,36 @@ export class AccessTokenService {
     private readonly config: ConfigService,
   ) {}
 
+  async issue(subject: string, jti: string) {
+    const secret = this.config.get<string>('JWT_SECRET');
+    if (!secret || secret.length < 32) {
+      throw new Error('JWT_SECRET must contain at least 32 characters');
+    }
+    const configuredTtl = Number(this.config.get<string>('JWT_TTL_SECONDS', '900'));
+    const ttlSeconds =
+      Number.isInteger(configuredTtl) && configuredTtl >= 60 && configuredTtl <= 900
+        ? configuredTtl
+        : 900;
+    const issuedAt = new Date();
+    const expiresAt = new Date(issuedAt.getTime() + ttlSeconds * 1000);
+    const accessToken = await this.jwt.signAsync(
+      {},
+      {
+        secret,
+        algorithm: 'HS256',
+        issuer: this.config.get<string>('JWT_ISSUER', 'poker-academy-api'),
+        audience: this.config.get<string>(
+          'JWT_AUDIENCE',
+          'poker-academy-frontend',
+        ),
+        subject,
+        jwtid: jti,
+        expiresIn: ttlSeconds,
+      },
+    );
+    return { accessToken, issuedAt, expiresAt };
+  }
+
   async verify(token: string): Promise<AccessTokenPayload> {
     const secret = this.config.get<string>('JWT_SECRET');
     if (!secret || secret.length < 32) {
