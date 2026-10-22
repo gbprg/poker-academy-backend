@@ -1,11 +1,15 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { json } from 'express';
 import helmet from 'helmet';
 import { configureCors } from './configure-cors.js';
+
+const JSON_BODY_LIMIT = '6mb';
 
 export function configureApplication(app: INestApplication): void {
   app.setGlobalPrefix('api');
   configureCors(app);
+  app.use(json({ limit: JSON_BODY_LIMIT }));
   app.use(
     helmet({
       contentSecurityPolicy: {
