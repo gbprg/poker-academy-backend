@@ -22,59 +22,63 @@ model User {
   id                String              @id @default(uuid()) @db.Uuid
   name              String              @db.VarChar(120)
   email             String              @unique @db.Citext
-  passwordHash      String?             @db.VarChar(255)
+  passwordHash      String?             @map("password_hash") @db.VarChar(255)
   role              UserRole            @default(USER)
   status            UserStatus          @default(INVITED)
-  passwordChangedAt DateTime?           @db.Timestamptz(3)
-  createdAt         DateTime            @default(now()) @db.Timestamptz(3)
-  updatedAt         DateTime            @updatedAt @db.Timestamptz(3)
+  passwordChangedAt DateTime?           @map("password_changed_at") @db.Timestamptz(3)
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
   activations       AccountActivation[]
   sessions          AuthSession[]
-  auditActions      AuditLog[]           @relation("AuditActor")
-  auditTargets      AuditLog[]           @relation("AuditTarget")
+  auditActions      AuditLog[]          @relation("AuditActor")
+  auditTargets      AuditLog[]          @relation("AuditTarget")
 
-  @@index([status, role])
+  @@index([status, role], map: "user_status_role_idx")
+  @@map("user")
 }
 
 model AuditLog {
   id           String   @id @default(uuid()) @db.Uuid
-  actorUserId  String?  @db.Uuid
-  targetUserId String?  @db.Uuid
+  actorUserId  String?  @map("actor_user_id") @db.Uuid
+  targetUserId String?  @map("target_user_id") @db.Uuid
   action       String   @db.VarChar(64)
   metadata     Json?
-  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   actor        User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: Restrict)
   target       User?    @relation("AuditTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
 
-  @@index([actorUserId, createdAt])
-  @@index([targetUserId, createdAt])
-  @@index([action, createdAt])
+  @@index([actorUserId, createdAt], map: "audit_log_actor_user_id_created_at_idx")
+  @@index([targetUserId, createdAt], map: "audit_log_target_user_id_created_at_idx")
+  @@index([action, createdAt], map: "audit_log_action_created_at_idx")
+  @@map("audit_log")
 }
 
 model AccountActivation {
   id         String    @id @default(uuid()) @db.Uuid
-  userId     String    @db.Uuid
-  tokenHash  String    @unique @db.Char(64)
-  expiresAt  DateTime  @db.Timestamptz(3)
-  consumedAt DateTime? @db.Timestamptz(3)
-  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  userId     String    @map("user_id") @db.Uuid
+  tokenHash  String    @unique @map("token_hash") @db.Char(64)
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(3)
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(3)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   user       User      @relation(fields: [userId], references: [id], onDelete: Restrict)
 
-  @@index([userId, expiresAt])
+  @@index([userId, expiresAt], map: "account_activation_user_id_expires_at_idx")
+  @@map("account_activation")
 }
 
 model AuthSession {
   id            String    @id @default(uuid()) @db.Uuid
   jti           String    @unique @db.Uuid
-  userId        String    @db.Uuid
-  issuedAt      DateTime  @db.Timestamptz(3)
-  expiresAt     DateTime  @db.Timestamptz(3)
-  revokedAt     DateTime? @db.Timestamptz(3)
-  userAgentHash String?   @db.Char(64)
+  userId        String    @map("user_id") @db.Uuid
+  issuedAt      DateTime  @map("issued_at") @db.Timestamptz(3)
+  expiresAt     DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(3)
+  userAgentHash String?   @map("user_agent_hash") @db.Char(64)
   user          User      @relation(fields: [userId], references: [id], onDelete: Restrict)
 
-  @@index([userId, issuedAt])
-  @@index([expiresAt, revokedAt])
+  @@index([userId, issuedAt], map: "auth_session_user_id_issued_at_idx")
+  @@index([expiresAt, revokedAt], map: "auth_session_expires_at_revoked_at_idx")
+  @@map("auth_session")
 }
 
 enum GameFormat {
@@ -114,117 +118,124 @@ enum CoverageStatus {
 }
 
 model StrategySource {
-  id             String                @id @default(uuid()) @db.Uuid
-  slug           String                @unique @db.VarChar(120)
-  title          String                @db.VarChar(200)
-  author         String                @db.VarChar(200)
-  originUrl      String?               @db.VarChar(500)
+  id             String            @id @default(uuid()) @db.Uuid
+  slug           String            @unique @db.VarChar(120)
+  title          String            @db.VarChar(200)
+  author         String            @db.VarChar(200)
+  originUrl      String?           @map("origin_url") @db.VarChar(500)
   method         SourceMethod
-  rightsVerified Boolean               @default(false)
-  createdAt      DateTime              @default(now()) @db.Timestamptz(3)
-  updatedAt      DateTime              @updatedAt @db.Timestamptz(3)
+  rightsVerified Boolean           @default(false) @map("rights_verified")
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
   licenses       SourceLicense[]
   versions       StrategyVersion[]
 
-  @@index([method])
+  @@index([method], map: "strategy_source_method_idx")
+  @@map("strategy_source")
 }
 
 model SourceLicense {
-  id              String        @id @default(uuid()) @db.Uuid
-  sourceId        String        @db.Uuid
-  licenseName     String        @db.VarChar(160)
-  licenseUrl      String?       @db.VarChar(500)
-  terms           String        @db.Text
-  authorizationId String?       @db.VarChar(200)
-  capturedAt      DateTime      @db.Timestamptz(3)
-  checksum        String        @db.Char(64)
-  createdAt       DateTime      @default(now()) @db.Timestamptz(3)
+  id              String         @id @default(uuid()) @db.Uuid
+  sourceId        String         @map("source_id") @db.Uuid
+  licenseName     String         @map("license_name") @db.VarChar(160)
+  licenseUrl      String?        @map("license_url") @db.VarChar(500)
+  terms           String         @db.Text
+  authorizationId String?        @map("authorization_id") @db.VarChar(200)
+  capturedAt      DateTime       @map("captured_at") @db.Timestamptz(3)
+  checksum        String         @db.Char(64)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
   source          StrategySource @relation(fields: [sourceId], references: [id], onDelete: Restrict)
 
-  @@unique([sourceId, checksum])
-  @@index([sourceId, capturedAt])
+  @@unique([sourceId, checksum], map: "source_license_source_id_checksum_key")
+  @@index([sourceId, capturedAt], map: "source_license_source_id_captured_at_idx")
+  @@map("source_license")
 }
 
 model SpotDefinition {
-  id                  String          @id @default(uuid()) @db.Uuid
-  spotKey             String          @unique @db.VarChar(200)
-  canonicalFingerprint String         @unique @db.Char(64)
-  format              GameFormat
-  valuation           ValuationModel
-  street              Street
-  tableSize           Int
-  schemaVersion       String          @db.VarChar(20)
-  definition          Json
-  createdAt           DateTime        @default(now()) @db.Timestamptz(3)
-  versions            StrategyVersion[]
-  coverage            CoverageRecord[]
+  id                   String            @id @default(uuid()) @db.Uuid
+  spotKey              String            @unique @map("spot_key") @db.VarChar(200)
+  canonicalFingerprint String            @unique @map("canonical_fingerprint") @db.Char(64)
+  format               GameFormat
+  valuation            ValuationModel
+  street               Street
+  tableSize            Int               @map("table_size")
+  schemaVersion        String            @map("schema_version") @db.VarChar(20)
+  definition           Json
+  createdAt            DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  versions             StrategyVersion[]
+  coverage             CoverageRecord[]
 
-  @@index([street, format, valuation])
-  @@index([tableSize, valuation])
+  @@index([street, format, valuation], map: "spot_definition_street_format_valuation_idx")
+  @@index([tableSize, valuation], map: "spot_definition_table_size_valuation_idx")
+  @@map("spot_definition")
 }
 
 model StrategyVersion {
-  id                 String          @id @default(uuid()) @db.Uuid
-  spotId             String          @db.Uuid
-  sourceId           String          @db.Uuid
-  versionTag         String          @db.VarChar(80)
-  status             CoverageStatus  @default(DRAFT)
+  id                 String         @id @default(uuid()) @db.Uuid
+  spotId             String         @map("spot_id") @db.Uuid
+  sourceId           String         @map("source_id") @db.Uuid
+  versionTag         String         @map("version_tag") @db.VarChar(80)
+  status             CoverageStatus @default(DRAFT)
   model              ValuationModel
-  checksum           String          @unique @db.Char(64)
-  validationEvidence Json?
-  publishedAt        DateTime?       @db.Timestamptz(3)
-  createdAt          DateTime        @default(now()) @db.Timestamptz(3)
-  updatedAt          DateTime        @updatedAt @db.Timestamptz(3)
-  spot               SpotDefinition  @relation(fields: [spotId], references: [id], onDelete: Restrict)
-  source             StrategySource  @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+  checksum           String         @unique @db.Char(64)
+  validationEvidence Json?          @map("validation_evidence")
+  publishedAt        DateTime?      @map("published_at") @db.Timestamptz(3)
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  spot               SpotDefinition @relation(fields: [spotId], references: [id], onDelete: Restrict)
+  source             StrategySource @relation(fields: [sourceId], references: [id], onDelete: Restrict)
   nodes              StrategyNode[]
 
-  @@unique([spotId, versionTag])
-  @@index([status, model])
-  @@index([sourceId, createdAt])
+  @@unique([spotId, versionTag], map: "strategy_version_spot_id_version_tag_key")
+  @@index([status, model], map: "strategy_version_status_model_idx")
+  @@index([sourceId, createdAt], map: "strategy_version_source_id_created_at_idx")
+  @@map("strategy_version")
 }
 
 model StrategyNode {
-  id                String            @id @default(uuid()) @db.Uuid
-  strategyVersionId String            @db.Uuid
-  nodeKey           String            @db.VarChar(200)
+  id                String           @id @default(uuid()) @db.Uuid
+  strategyVersionId String           @map("strategy_version_id") @db.Uuid
+  nodeKey           String           @map("node_key") @db.VarChar(200)
   actions           StrategyAction[]
-  createdAt         DateTime          @default(now()) @db.Timestamptz(3)
-  strategyVersion   StrategyVersion   @relation(fields: [strategyVersionId], references: [id], onDelete: Restrict)
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  strategyVersion   StrategyVersion  @relation(fields: [strategyVersionId], references: [id], onDelete: Restrict)
 
-  @@unique([strategyVersionId, nodeKey])
-  @@index([strategyVersionId])
+  @@unique([strategyVersionId, nodeKey], map: "strategy_node_strategy_version_id_node_key_key")
+  @@index([strategyVersionId], map: "strategy_node_strategy_version_id_idx")
+  @@map("strategy_node")
 }
 
 model StrategyAction {
   id             String       @id @default(uuid()) @db.Uuid
-  strategyNodeId String       @db.Uuid
-  handClass      String       @db.VarChar(5)
-  actionType     String       @db.VarChar(10)
+  strategyNodeId String       @map("strategy_node_id") @db.Uuid
+  handClass      String       @map("hand_class") @db.VarChar(5)
+  actionType     String       @map("action_type") @db.VarChar(10)
   sizing         Decimal?     @db.Decimal(12, 4)
   frequency      Decimal      @db.Decimal(6, 5)
-  evNullable     Decimal?     @db.Decimal(14, 6)
-  unitNullable   String?      @db.VarChar(12)
+  evNullable     Decimal?     @map("ev_nullable") @db.Decimal(14, 6)
+  unitNullable   String?      @map("unit_nullable") @db.VarChar(12)
   node           StrategyNode @relation(fields: [strategyNodeId], references: [id], onDelete: Restrict)
 
-  @@index([strategyNodeId, handClass])
+  @@index([strategyNodeId, handClass], map: "strategy_action_strategy_node_id_hand_class_idx")
+  @@map("strategy_action")
 }
 
 model CoverageRecord {
-  id                  String          @id @default(uuid()) @db.Uuid
-  spotId              String?         @db.Uuid
-  format              GameFormat
-  valuation           ValuationModel
-  street              Street
-  tableSize           Int
-  status              CoverageStatus
-  eligibleExerciseCount Int           @default(0)
-  notes               String?         @db.Text
-  createdAt           DateTime        @default(now()) @db.Timestamptz(3)
-  updatedAt           DateTime        @updatedAt @db.Timestamptz(3)
-  spot                SpotDefinition? @relation(fields: [spotId], references: [id], onDelete: Restrict)
+  id                    String          @id @default(uuid()) @db.Uuid
+  spotId                String?         @map("spot_id") @db.Uuid
+  format                GameFormat
+  valuation             ValuationModel
+  street                Street
+  tableSize             Int             @map("table_size")
+  status                CoverageStatus
+  eligibleExerciseCount Int             @default(0) @map("eligible_exercise_count")
+  notes                 String?         @db.Text
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  spot                  SpotDefinition? @relation(fields: [spotId], references: [id], onDelete: Restrict)
 
-  @@unique([format, valuation, street, tableSize, spotId])
-  @@index([status, street, format])
-  @@index([format, valuation, street, tableSize, status])
+  @@unique([format, valuation, street, tableSize, spotId], map: "coverage_record_exact_key")
+  @@index([status, street, format], map: "coverage_record_status_street_format_idx")
+  @@index([format, valuation, street, tableSize, status], map: "coverage_record_format_valuation_street_table_size_status_idx")
+  @@map("coverage_record")
 }
