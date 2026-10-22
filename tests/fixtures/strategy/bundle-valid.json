@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "1.0.0",
+  "source": {
+    "slug": "demo-synthetic",
+    "title": "Synthetic demo bundle",
+    "author": "Poker Academy internal",
+    "method": "DEMO_NOT_GTO"
+  },
+  "spots": [
+    {
+      "schemaVersion": "1.0.0",
+      "spotId": "bundle-rfi-btn-20bb-9max-mtt",
+      "format": "MTT",
+      "tableSize": 9,
+      "valuation": "CHIP_EV",
+      "street": "PREFLOP",
+      "blinds": { "smallBlind": 0.5, "bigBlind": 1, "anteType": "BB_ANTE", "anteValue": 1 },
+      "seats": [
+        { "seat": 1, "position": "UTG", "stack": { "chips": 20, "bb": 20 }, "isHero": false, "isActive": true },
+        { "seat": 2, "position": "UTG1", "stack": { "chips": 20, "bb": 20 }, "isHero": false, "isActive": true },
+        { "seat": 3, "position": "MP", "stack": { "chips": 20, "bb": 20 }, "isHero": false, "isActive": true },
+        { "seat": 4, "position": "MP1", "stack": { "chips": 20, "bb": 20 }, "isHero": false, "isActive": true },
+        { "seat": 5, "position": "HJ", "stack": { "chips": 20, "bb": 20 }, "isHero": false, "isActive": true },
+        { "seat": 6, "position": "CO", "stack": { "chips": 20, "bb": 20 }, "isHero": false, "isActive": true },
+        { "seat": 7, "position": "BTN", "stack": { "chips": 20, "bb": 20 }, "isHero": true, "isActive": true },
+        { "seat": 8, "position": "SB", "stack": { "chips": 20, "bb": 20 }, "isHero": false, "isActive": true },
+        { "seat": 9, "position": "BB", "stack": { "chips": 20, "bb": 20 }, "isHero": false, "isActive": true }
+      ],
+      "hero": { "seat": 7, "position": "BTN", "handClass": "AA" },
+      "board": [],
+      "history": [
+        {
+          "street": "PREFLOP",
+          "actions": [
+            { "seat": 8, "position": "SB", "action": "CALL", "amountTo": 0.5, "increment": 0.5 },
+            { "seat": 9, "position": "BB", "action": "CHECK", "amountTo": 1, "increment": 0 }
+          ]
+        }
+      ],
+      "pot": { "chips": 2.5, "chipsAtStreetStart": 1.5 },
+      "legalActions": ["FOLD", "RAISE", "ALL_IN"],
+      "demoLabel": "DEMO_NOT_GTO"
+    }
+  ],
+  "strategyVersions": [
+    {
+      "schemaVersion": "1.0.0",
+      "strategyVersionId": "bundle-strategy-rfi-btn-20bb-v1",
+      "spotId": "bundle-rfi-btn-20bb-9max-mtt",
+      "sourceId": "demo-synthetic",
+      "status": "EXPERIMENTAL",
+      "method": "DEMO_NOT_GTO",
+      "model": "CHIP_EV",
+      "versionTag": "v1-demo",
+      "checksum": "1111111111111111111111111111111111111111111111111111111111111111",
+      "validationEvidence": ["synthetic fixture only; not a GTO or solver output"],
+      "demoLabel": "DEMO_NOT_GTO"
+    }
+  ],
+  "decisionNodes": [
+    {
+      "schemaVersion": "1.0.0",
+      "nodeId": "bundle-node-rfi-btn-20bb",
+      "spotId": "bundle-rfi-btn-20bb-9max-mtt",
+      "strategyVersionId": "bundle-strategy-rfi-btn-20bb-v1",
+      "tolerance": 0.001,
+      "actions": [
+        { "combo": "AA", "actionType": "RAISE", "sizing": 2, "frequency": 1, "evNullable": null, "unitNullable": null },
+        { "combo": "AKs", "actionType": "RAISE", "sizing": 2, "frequency": 0.75, "evNullable": null, "unitNullable": null },
+        { "combo": "AKs", "actionType": "FOLD", "frequency": 0.25, "evNullable": null, "unitNullable": null }
+      ],
+      "demoLabel": "DEMO_NOT_GTO"
+    }
+  ]
+}

@@ -13,6 +13,7 @@
   "scripts": {
     "build": "prisma generate && nest build",
     "bootstrap:admin": "npm run build && node dist/scripts/bootstrap-admin.js",
+    "import:strategies": "npm run build && node dist/scripts/import-strategies.js",
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",

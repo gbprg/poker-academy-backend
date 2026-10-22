@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "1.0.0",
+  "source": {
+    "slug": "demo-invalid",
+    "title": "Synthetic invalid bundle",
+    "author": "Poker Academy internal",
+    "method": "DEMO_NOT_GTO"
+  },
+  "spots": [
+    {
+      "schemaVersion": "1.0.0",
+      "spotId": "bundle-bad-flop",
+      "format": "MTT",
+      "tableSize": 9,
+      "valuation": "CHIP_EV",
+      "street": "FLOP",
+      "blinds": { "smallBlind": 0.5, "bigBlind": 1, "anteType": "NONE", "anteValue": 0 },
+      "seats": [
+        { "seat": 7, "position": "BTN", "stack": { "chips": 40, "bb": 40 }, "isHero": true, "isActive": true },
+        { "seat": 9, "position": "BB", "stack": { "chips": 39, "bb": 39 }, "isHero": false, "isActive": true }
+      ],
+      "hero": { "seat": 7, "position": "BTN", "handClass": "AKs", "holeCards": ["As", "Ks"] },
+      "board": ["Ah", "7c"],
+      "history": [
+        {
+          "street": "PREFLOP",
+          "actions": [
+            { "seat": 7, "position": "BTN", "action": "RAISE", "amountTo": 2.5, "increment": 2.5 },
+            { "seat": 9, "position": "BB", "action": "CALL", "amountTo": 2.5, "increment": 1.5 }
+          ]
+        }
+      ],
+      "pot": { "chips": 5.5, "chipsAtStreetStart": 5 },
+      "legalActions": ["CHECK", "BET", "ALL_IN"],
+      "demoLabel": "DEMO_NOT_GTO"
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "spotId": "bundle-bad-flop",
+      "format": "MTT",
+      "tableSize": 9,
+      "valuation": "CHIP_EV",
+      "street": "PREFLOP",
+      "blinds": { "smallBlind": 0.5, "bigBlind": 1, "anteType": "NONE", "anteValue": 0 },
+      "seats": [
+        { "seat": 7, "position": "BTN", "stack": { "chips": 20, "bb": 20 }, "isHero": true, "isActive": true },
+        { "seat": 8, "position": "SB", "stack": { "chips": 20, "bb": 20 }, "isHero": false, "isActive": true },
+        { "seat": 9, "position": "BB", "stack": { "chips": 20, "bb": 20 }, "isHero": false, "isActive": true }
+      ],
+      "hero": { "seat": 7, "position": "BTN", "handClass": "AA" },
+      "board": [],
+      "history": [],
+      "pot": { "chips": 1.5, "chipsAtStreetStart": 1.5 },
+      "legalActions": ["FOLD", "RAISE", "ALL_IN"],
+      "demoLabel": "DEMO_NOT_GTO"
+    }
+  ],
+  "strategyVersions": [],
+  "decisionNodes": [
+    {
+      "schemaVersion": "1.0.0",
+      "nodeId": "orphan-node",
+      "spotId": "missing-spot",
+      "strategyVersionId": "missing-version",
+      "tolerance": 0.001,
+      "actions": [
+        { "combo": "AA", "actionType": "RAISE", "sizing": 2, "frequency": 1, "evNullable": null, "unitNullable": null }
+      ],
+      "demoLabel": "DEMO_NOT_GTO"
+    },
+    {
+      "schemaVersion": "1.0.0",
+      "nodeId": "bad-tolerance-node",
+      "spotId": "bundle-bad-flop",
+      "strategyVersionId": "missing-version",
+      "tolerance": 0.001,
+      "actions": [
+        { "combo": "KK", "actionType": "RAISE", "sizing": 2, "frequency": 0.8, "evNullable": null, "unitNullable": null },
+        { "combo": "KK", "actionType": "FOLD", "frequency": 0.1, "evNullable": null, "unitNullable": null }
+      ],
+      "demoLabel": "DEMO_NOT_GTO"
+    }
+  ]
+}

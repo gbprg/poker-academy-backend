@@ -86,6 +86,7 @@ enum ValuationModel {
   CHIP_EV
   ICM
   PKO
+  EDITORIAL
 }
 
 enum Street {
