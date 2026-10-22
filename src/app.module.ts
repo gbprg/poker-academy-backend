@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { RangesModule } from './modules/ranges/ranges.module.js';
 import { StrategyLibraryModule } from './modules/strategy-library/strategy-library.module.js';
 import { CoverageModule } from './modules/strategy-library/coverage/coverage.module.js';
 import { RATE_LIMITS } from './common/throttling.js';
@@ -31,6 +32,7 @@ import { RATE_LIMITS } from './common/throttling.js';
     AdminUsersModule,
     StrategyLibraryModule,
     CoverageModule,
+    RangesModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
