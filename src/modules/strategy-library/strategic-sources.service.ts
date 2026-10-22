@@ -105,6 +105,11 @@ export class StrategicSourcesService {
     }
   }
 
+  /** Publishing demands the same dual evidence as REVIEW: verified rights plus quality evidence. */
+  async assertCanPublish(strategyVersionId: string): Promise<void> {
+    await this.assertCanAdvanceToReview(strategyVersionId);
+  }
+
   private async audit(
     actorUserId: string,
     action: string,
