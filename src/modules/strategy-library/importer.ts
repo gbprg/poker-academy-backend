@@ -204,6 +204,8 @@ export function validateBundle(raw: string): ImportReport {
     counts.decisionNodes += 1;
   }
 
+  validatePostflopCoherence(bundle, issues);
+
   return {
     ok: issues.length === 0,
     source: { slug: bundle.source.slug, method: bundle.source.method },
@@ -217,3 +219,35 @@ export function checksumOf(value: unknown): string {
 }
 
 export { bundleEnvelopeSchema };
+
+export function validatePostflopCoherence(bundle: ImportBundle, issues: ImportIssue[]): void {
+  for (const [index, spot] of bundle.spots.entries()) {
+    if (spot.street === 'FLOP') {
+      if (!Array.isArray(spot.board) || spot.board.length !== 3) {
+        issues.push({
+          path: `spots[${index}].board`,
+          code: 'INVALID_BOARD',
+          message: 'FLOP requires exactly 3 board cards',
+        });
+      }
+    }
+    if (spot.street === 'TURN') {
+      if (!Array.isArray(spot.board) || spot.board.length !== 4) {
+        issues.push({
+          path: `spots[${index}].board`,
+          code: 'INVALID_BOARD',
+          message: 'TURN requires exactly 4 board cards',
+        });
+      }
+    }
+    if (spot.street === 'RIVER') {
+      if (!Array.isArray(spot.board) || spot.board.length !== 5) {
+        issues.push({
+          path: `spots[${index}].board`,
+          code: 'INVALID_BOARD',
+          message: 'RIVER requires exactly 5 board cards',
+        });
+      }
+    }
+  }
+}

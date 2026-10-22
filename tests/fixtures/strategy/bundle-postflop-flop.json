@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "1.0.0",
+  "source": {
+    "slug": "postflop-demo",
+    "title": "Postflop Demo",
+    "author": "Internal",
+    "method": "DEMO_NOT_GTO"
+  },
+  "spots": [
+    {
+      "schemaVersion": "1.0.0",
+      "spotId": "postflop-flop-btn-3bet-100bb",
+      "format": "CASH",
+      "tableSize": 6,
+      "valuation": "CHIP_EV",
+      "street": "FLOP",
+      "blinds": { "smallBlind": 1, "bigBlind": 2, "anteType": "NONE", "anteValue": 0 },
+      "seats": [
+        { "seat": 0, "position": "BTN", "stack": { "chips": 10000, "bb": 100 }, "isHero": true, "isActive": true },
+        { "seat": 1, "position": "BB", "stack": { "chips": 10000, "bb": 100 }, "isHero": false, "isActive": true }
+      ],
+      "hero": { "seat": 0, "position": "BTN" },
+      "board": [
+        { "rank": "A", "suit": "h" },
+        { "rank": "K", "suit": "d" },
+        { "rank": "7", "suit": "c" }
+      ],
+      "history": [],
+      "pot": { "chips": 600, "chipsAtStreetStart": 600 },
+      "legalActions": ["BET", "CHECK"]
+    }
+  ],
+  "strategyVersions": [
+    {
+      "schemaVersion": "1.0.0",
+      "strategyVersionId": "postflop-v1",
+      "spotId": "postflop-flop-btn-3bet-100bb",
+      "sourceId": "demo",
+      "status": "DRAFT",
+      "method": "DEMO_NOT_GTO",
+      "model": "CHIP_EV",
+      "versionTag": "v1",
+      "checksum": "b".repeat(64),
+      "validationEvidence": ["demo"]
+    }
+  ],
+  "decisionNodes": [
+    {
+      "schemaVersion": "1.0.0",
+      "nodeId": "flop-cbet",
+      "spotId": "postflop-flop-btn-3bet-100bb",
+      "strategyVersionId": "postflop-v1",
+      "actions": [
+        { "combo": "AKs", "actionType": "BET", "sizing": 0.5, "frequency": 0.7 },
+        { "combo": "AKs", "actionType": "CHECK", "frequency": 0.3 },
+        { "combo": "AA", "actionType": "BET", "sizing": 0.5, "frequency": 1.0 }
+      ],
+      "tolerance": 0.001
+    }
+  ]
+}
