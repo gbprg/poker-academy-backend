@@ -226,4 +226,5 @@ model CoverageRecord {
 
   @@unique([format, valuation, street, tableSize, spotId])
   @@index([status, street, format])
+  @@index([format, valuation, street, tableSize, status])
 }

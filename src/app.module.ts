@@ -8,6 +8,7 @@ import { HealthModule } from './modules/health/health.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { StrategyLibraryModule } from './modules/strategy-library/strategy-library.module.js';
+import { CoverageModule } from './modules/strategy-library/coverage/coverage.module.js';
 import { RATE_LIMITS } from './common/throttling.js';
 
 @Module({
@@ -29,6 +30,7 @@ import { RATE_LIMITS } from './common/throttling.js';
     IdentityModule,
     AdminUsersModule,
     StrategyLibraryModule,
+    CoverageModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
