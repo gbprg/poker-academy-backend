@@ -10,6 +10,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { RangesModule } from './modules/ranges/ranges.module.js';
 import { StrategyLibraryModule } from './modules/strategy-library/strategy-library.module.js';
 import { CoverageModule } from './modules/strategy-library/coverage/coverage.module.js';
+import { PostflopModule } from './modules/strategy-library/postflop/postflop.module.js';
 import { RATE_LIMITS } from './common/throttling.js';
 
 @Module({
@@ -33,6 +34,7 @@ import { RATE_LIMITS } from './common/throttling.js';
     StrategyLibraryModule,
     CoverageModule,
     RangesModule,
+    PostflopModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
