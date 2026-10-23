@@ -13,7 +13,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { TrainingService } from './training.service.js';
-import { CreateTrainingSessionDto } from './training.dto.js';
+import { CreateTrainingSessionDto, SubmitTrainingAnswerDto } from './training.dto.js';
 
 @ApiTags('training')
 @ApiBearerAuth()
@@ -32,6 +32,17 @@ export class TrainingController {
   @Header('Cache-Control', 'private, no-store')
   getSession(@Req() request: AuthenticatedRequest, @Param('sessionId') sessionId: string) {
     return this.training.getSession(request.user.id, sessionId);
+  }
+
+  @Post('sessions/:sessionId/questions/:position/answers')
+  @Header('Cache-Control', 'private, no-store')
+  submitAnswer(
+    @Req() request: AuthenticatedRequest,
+    @Param('sessionId') sessionId: string,
+    @Param('position', ParseIntPipe) position: number,
+    @Body() dto: SubmitTrainingAnswerDto,
+  ) {
+    return this.training.submitAnswer(request.user.id, sessionId, position, dto);
   }
 
   @Get('sessions/:sessionId/questions/:position')

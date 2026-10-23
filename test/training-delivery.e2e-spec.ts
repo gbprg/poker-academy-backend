@@ -217,6 +217,87 @@ describe('training question delivery (e2e)', () => {
       .expect(404);
   });
 
+  it('rejects illegal actions and invalid sizings without persisting an attempt', async () => {
+    const { token } = await authenticatedUser();
+    const body = await createSession(token);
+
+    await request(app.getHttpServer())
+      .post(`/api/training/sessions/${body.session.id}/questions/1/answers`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ actionType: 'CALL', idempotencyKey: 'illegal-action-key' })
+      .expect(422);
+
+    await request(app.getHttpServer())
+      .post(`/api/training/sessions/${body.session.id}/questions/1/answers`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ actionType: 'RAISE', sizing: 5, idempotencyKey: 'illegal-sizing-key' })
+      .expect(422);
+  });
+
+  it('scores the chosen action against the server-side mix and keeps EV null', async () => {
+    const { token } = await authenticatedUser();
+    const body = await createSession(token);
+
+    const response = await request(app.getHttpServer())
+      .post(`/api/training/sessions/${body.session.id}/questions/1/answers`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ actionType: 'RAISE', sizing: 2, idempotencyKey: 'first-answer-key' })
+      .expect(201);
+
+    expect(response.body).toMatchObject({
+      duplicate: false,
+      score: 1,
+      evDelta: null,
+      bestActionType: 'RAISE',
+      scoringVersion: 'mix-v1',
+    });
+    expect(response.body.mix).toEqual([{ actionType: 'RAISE', frequency: 1 }]);
+  });
+
+  it('returns the original result on a repeated answer without double scoring', async () => {
+    const { token } = await authenticatedUser();
+    const body = await createSession(token);
+
+    const first = await request(app.getHttpServer())
+      .post(`/api/training/sessions/${body.session.id}/questions/1/answers`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ actionType: 'RAISE', sizing: 2, idempotencyKey: 'repeat-key-0001' })
+      .expect(201);
+
+    const second = await request(app.getHttpServer())
+      .post(`/api/training/sessions/${body.session.id}/questions/1/answers`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ actionType: 'RAISE', sizing: 2, idempotencyKey: 'repeat-key-0001' })
+      .expect(201);
+
+    expect(second.body.duplicate).toBe(true);
+    expect(second.body.score).toBe(first.body.score);
+
+    const differentKey = await request(app.getHttpServer())
+      .post(`/api/training/sessions/${body.session.id}/questions/1/answers`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ actionType: 'RAISE', sizing: 2, idempotencyKey: 'repeat-key-0002' })
+      .expect(201);
+    expect(differentKey.body.duplicate).toBe(true);
+
+    const attempts = await prisma.trainingAttempt.count({
+      where: { question: { sessionId: body.session.id } },
+    });
+    expect(attempts).toBe(1);
+  });
+
+  it('forbids answering another user\'s question', async () => {
+    const owner = await authenticatedUser();
+    const body = await createSession(owner.token);
+    const stranger = await authenticatedUser();
+
+    await request(app.getHttpServer())
+      .post(`/api/training/sessions/${body.session.id}/questions/1/answers`)
+      .set('Authorization', `Bearer ${stranger.token}`)
+      .send({ actionType: 'RAISE', sizing: 2, idempotencyKey: 'stranger-key-0001' })
+      .expect(404);
+  });
+
   it('returns a session summary with answered flags', async () => {
     const { token } = await authenticatedUser();
     const body = await createSession(token);

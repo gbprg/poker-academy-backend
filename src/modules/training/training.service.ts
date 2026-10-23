@@ -1,6 +1,12 @@
-import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import type { CreateTrainingSessionDto } from './training.dto.js';
+import type { CreateTrainingSessionDto, SubmitTrainingAnswerDto } from './training.dto.js';
+import { TrainingScoringService, type ScorableAction } from './training-scoring.service.js';
 
 type SpotDefinitionLike = {
   blinds?: unknown;
@@ -16,7 +22,10 @@ const MAX_QUESTIONS = 10;
 
 @Injectable()
 export class TrainingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly scoring: TrainingScoringService,
+  ) {}
 
   async createSession(userId: string, dto: CreateTrainingSessionDto) {
     const versions = await this.prisma.strategyVersion.findMany({
@@ -118,6 +127,154 @@ export class TrainingService {
     }
 
     return { question: this.toDeliveredQuestion(question) };
+  }
+
+  async submitAnswer(
+    userId: string,
+    sessionId: string,
+    position: number,
+    dto: SubmitTrainingAnswerDto,
+  ) {
+    const question = await this.prisma.trainingQuestion.findFirst({
+      where: { sessionId, position, session: { userId } },
+      select: {
+        id: true,
+        strategyVersionId: true,
+        nodeId: true,
+        snapshot: true,
+      },
+    });
+
+    if (!question) {
+      throw new NotFoundException('Questão de treino não encontrada.');
+    }
+
+    const existing = await this.prisma.trainingAttempt.findFirst({
+      where: { questionId: question.id, userId },
+    });
+    if (existing) {
+      return this.toAnswerFeedback(existing, true);
+    }
+
+    if (!question.nodeId) {
+      throw new UnprocessableEntityException('QUESTION_WITHOUT_ANSWER_KEY');
+    }
+
+    const node = await this.prisma.strategyNode.findUnique({
+      where: { id: question.nodeId },
+      select: {
+        actions: {
+          select: {
+            handClass: true,
+            actionType: true,
+            sizing: true,
+            frequency: true,
+            evNullable: true,
+          },
+        },
+      },
+    });
+
+    const snapshot = (question.snapshot ?? {}) as {
+      hero?: { handClass?: unknown };
+      legalActions?: unknown;
+    };
+    const heroHandClass =
+      snapshot.hero && typeof snapshot.hero.handClass === 'string'
+        ? snapshot.hero.handClass
+        : null;
+    const legalActions = Array.isArray(snapshot.legalActions)
+      ? snapshot.legalActions.filter((value): value is string => typeof value === 'string')
+      : null;
+
+    const actions: ScorableAction[] = (node?.actions ?? []).map((action) => ({
+      handClass: action.handClass,
+      actionType: action.actionType,
+      sizing: action.sizing,
+      frequency: action.frequency,
+      evNullable: action.evNullable,
+    }));
+
+    const input = {
+      heroHandClass,
+      legalActions,
+      actions,
+      chosenActionType: dto.actionType,
+      chosenSizing: dto.sizing ?? null,
+    };
+
+    if (!this.scoring.isLegalAction(input)) {
+      throw new UnprocessableEntityException('ILLEGAL_ACTION');
+    }
+
+    const result = this.scoring.score(input);
+
+    try {
+      const attempt = await this.prisma.$transaction(async (tx) => {
+        const created = await tx.trainingAttempt.create({
+          data: {
+            questionId: question.id,
+            userId,
+            idempotencyKey: dto.idempotencyKey,
+            actionType: dto.actionType,
+            sizing: dto.sizing ?? null,
+            score: result.score,
+            evDelta: result.evDelta,
+            scoringVersion: result.scoringVersion,
+            feedback: {
+              bestActionType: result.bestActionType,
+              mix: result.mix,
+            } as never,
+          },
+        });
+        await tx.trainingQuestion.update({
+          where: { id: question.id },
+          data: { answeredAt: new Date() },
+        });
+        return created;
+      });
+      return this.toAnswerFeedback(attempt, false);
+    } catch (error) {
+      if ((error as { code?: string }).code === 'P2002') {
+        const original = await this.prisma.trainingAttempt.findFirst({
+          where: { questionId: question.id, userId },
+        });
+        if (original) {
+          return this.toAnswerFeedback(original, true);
+        }
+        throw new ConflictException('ANSWER_ALREADY_SUBMITTED');
+      }
+      throw error;
+    }
+  }
+
+  private toAnswerFeedback(
+    attempt: {
+      actionType: string;
+      sizing: unknown;
+      score: unknown;
+      evDelta: unknown;
+      scoringVersion: string;
+      feedback: unknown;
+    },
+    duplicate: boolean,
+  ) {
+    const feedback = (attempt.feedback ?? {}) as {
+      bestActionType?: string | null;
+      mix?: Array<{ actionType: string; frequency: number }>;
+    };
+    return {
+      duplicate,
+      answer: {
+        actionType: attempt.actionType,
+        sizing: attempt.sizing === null ? null : Number(attempt.sizing),
+      },
+      score: Number(attempt.score),
+      evDelta: attempt.evDelta === null ? null : Number(attempt.evDelta),
+      bestActionType: feedback.bestActionType ?? null,
+      mix: feedback.mix ?? [],
+      scoringVersion: attempt.scoringVersion,
+    };
   }
 
   private buildSnapshot(

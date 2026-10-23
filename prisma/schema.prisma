@@ -33,6 +33,7 @@ model User {
   auditActions      AuditLog[]          @relation("AuditActor")
   auditTargets      AuditLog[]          @relation("AuditTarget")
   trainingSessions  TrainingSession[]
+  trainingAttempts  TrainingAttempt[]
 
   @@index([status, role], map: "user_status_role_idx")
   @@map("user")
@@ -264,18 +265,41 @@ model TrainingSession {
 }
 
 model TrainingQuestion {
-  id                String          @id @default(uuid()) @db.Uuid
-  sessionId         String          @map("session_id") @db.Uuid
+  id                String            @id @default(uuid()) @db.Uuid
+  sessionId         String            @map("session_id") @db.Uuid
   position          Int
-  spotId            String          @map("spot_id") @db.Uuid
-  strategyVersionId String          @map("strategy_version_id") @db.Uuid
-  nodeId            String?         @map("node_id") @db.Uuid
+  spotId            String            @map("spot_id") @db.Uuid
+  strategyVersionId String            @map("strategy_version_id") @db.Uuid
+  nodeId            String?           @map("node_id") @db.Uuid
   snapshot          Json
-  answeredAt        DateTime?       @map("answered_at") @db.Timestamptz(3)
-  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
-  session           TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  answeredAt        DateTime?         @map("answered_at") @db.Timestamptz(3)
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  session           TrainingSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  attempts          TrainingAttempt[]
 
   @@unique([sessionId, position], map: "training_question_session_id_position_key")
   @@index([sessionId], map: "training_question_session_id_idx")
   @@map("training_question")
+}
+
+model TrainingAttempt {
+  id             String           @id @default(uuid()) @db.Uuid
+  questionId     String           @map("question_id") @db.Uuid
+  userId         String           @map("user_id") @db.Uuid
+  idempotencyKey String           @map("idempotency_key") @db.VarChar(120)
+  actionType     String           @map("action_type") @db.VarChar(20)
+  sizing         Decimal?         @db.Decimal(12, 4)
+  score          Decimal          @db.Decimal(6, 5)
+  evDelta        Decimal?         @map("ev_delta") @db.Decimal(14, 6)
+  scoringVersion String           @map("scoring_version") @db.VarChar(40)
+  feedback       Json
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  question       TrainingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, idempotencyKey], map: "training_attempt_question_id_idempotency_key_key")
+  @@unique([questionId, userId], map: "training_attempt_question_id_user_id_key")
+  @@index([questionId], map: "training_attempt_question_id_idx")
+  @@index([userId, createdAt], map: "training_attempt_user_id_created_at_idx")
+  @@map("training_attempt")
 }
