@@ -32,6 +32,7 @@ model User {
   sessions          AuthSession[]
   auditActions      AuditLog[]          @relation("AuditActor")
   auditTargets      AuditLog[]          @relation("AuditTarget")
+  trainingSessions  TrainingSession[]
 
   @@index([status, role], map: "user_status_role_idx")
   @@map("user")
@@ -238,4 +239,43 @@ model CoverageRecord {
   @@index([status, street, format], map: "coverage_record_status_street_format_idx")
   @@index([format, valuation, street, tableSize, status], map: "coverage_record_format_valuation_street_table_size_status_idx")
   @@map("coverage_record")
+}
+
+enum TrainingSessionStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}
+
+model TrainingSession {
+  id          String                @id @default(uuid()) @db.Uuid
+  userId      String                @map("user_id") @db.Uuid
+  status      TrainingSessionStatus @default(ACTIVE)
+  filters     Json                  @default("{}")
+  scenario    Json                  @default("{}")
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  completedAt DateTime?             @map("completed_at") @db.Timestamptz(3)
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions   TrainingQuestion[]
+
+  @@index([userId, status], map: "training_session_user_id_status_idx")
+  @@index([userId, createdAt], map: "training_session_user_id_created_at_idx")
+  @@map("training_session")
+}
+
+model TrainingQuestion {
+  id                String          @id @default(uuid()) @db.Uuid
+  sessionId         String          @map("session_id") @db.Uuid
+  position          Int
+  spotId            String          @map("spot_id") @db.Uuid
+  strategyVersionId String          @map("strategy_version_id") @db.Uuid
+  nodeId            String?         @map("node_id") @db.Uuid
+  snapshot          Json
+  answeredAt        DateTime?       @map("answered_at") @db.Timestamptz(3)
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  session           TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, position], map: "training_question_session_id_position_key")
+  @@index([sessionId], map: "training_question_session_id_idx")
+  @@map("training_question")
 }
