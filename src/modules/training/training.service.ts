@@ -248,6 +248,126 @@ export class TrainingService {
     }
   }
 
+  async completeSession(userId: string, sessionId: string) {
+    const session = await this.prisma.trainingSession.findFirst({
+      where: { id: sessionId, userId },
+      include: {
+        questions: {
+          orderBy: { position: 'asc' },
+          include: {
+            attempts: { where: { userId }, take: 1 },
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Sessão de treino não encontrada.');
+    }
+
+    const alreadyCompleted = session.status === 'COMPLETED';
+    const completedAt = session.completedAt ?? new Date();
+    if (!alreadyCompleted) {
+      await this.prisma.trainingSession.update({
+        where: { id: session.id },
+        data: { status: 'COMPLETED', completedAt },
+      });
+    }
+
+    const spotIds = [...new Set(session.questions.map((question) => question.spotId))];
+    const spots = await this.prisma.spotDefinition.findMany({
+      where: { id: { in: spotIds } },
+      select: { id: true, spotKey: true },
+    });
+    const spotKeyById = new Map(spots.map((spot) => [spot.id, spot.spotKey]));
+
+    const results = session.questions.map((question) => {
+      const attempt = question.attempts[0] ?? null;
+      return {
+        position: question.position,
+        spotKey: spotKeyById.get(question.spotId) ?? null,
+        strategyVersionId: question.strategyVersionId,
+        answered: attempt !== null,
+        actionType: attempt?.actionType ?? null,
+        score: attempt ? Number(attempt.score) : null,
+        evDelta: attempt?.evDelta === null || attempt?.evDelta === undefined ? null : Number(attempt.evDelta),
+        scoringVersion: attempt?.scoringVersion ?? null,
+      };
+    });
+
+    const answered = results.filter((result) => result.answered);
+    const scored = answered.filter((result): result is typeof result & { score: number } => result.score !== null);
+    const evResults = answered.filter(
+      (result): result is typeof result & { evDelta: number } => result.evDelta !== null,
+    );
+
+    return {
+      session: {
+        id: session.id,
+        status: 'COMPLETED',
+        createdAt: session.createdAt,
+        completedAt,
+        alreadyCompleted,
+      },
+      totalQuestions: session.questions.length,
+      answeredQuestions: answered.length,
+      partial: answered.length < session.questions.length,
+      averageScore:
+        scored.length === 0
+          ? null
+          : Number((scored.reduce((total, result) => total + result.score, 0) / scored.length).toFixed(5)),
+      averageEvDelta:
+        evResults.length === 0
+          ? null
+          : Number(
+              (evResults.reduce((total, result) => total + result.evDelta, 0) / evResults.length).toFixed(6),
+            ),
+      results,
+    };
+  }
+
+  async getHistory(userId: string) {
+    const sessions = await this.prisma.trainingSession.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      include: {
+        questions: {
+          select: {
+            id: true,
+            attempts: { where: { userId }, select: { score: true }, take: 1 },
+          },
+        },
+      },
+    });
+
+    return {
+      sessions: sessions.map((session) => {
+        const attempts = session.questions
+          .map((question) => question.attempts[0] ?? null)
+          .filter((attempt) => attempt !== null);
+        const averageScore =
+          attempts.length === 0
+            ? null
+            : Number(
+                (
+                  attempts.reduce((total, attempt) => total + Number(attempt.score), 0) /
+                  attempts.length
+                ).toFixed(5),
+              );
+        return {
+          id: session.id,
+          status: session.status,
+          createdAt: session.createdAt,
+          completedAt: session.completedAt,
+          totalQuestions: session.questions.length,
+          answeredQuestions: attempts.length,
+          averageScore,
+        };
+      }),
+    };
+  }
+
   private toAnswerFeedback(
     attempt: {
       actionType: string;

@@ -298,6 +298,111 @@ describe('training question delivery (e2e)', () => {
       .expect(404);
   });
 
+  it('completes a session once with aggregates derived from attempts', async () => {
+    const { token } = await authenticatedUser();
+    const body = await createSession(token);
+
+    const partial = await request(app.getHttpServer())
+      .post(`/api/training/sessions/${body.session.id}/complete`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(201);
+    expect(partial.body).toMatchObject({
+      totalQuestions: 1,
+      answeredQuestions: 0,
+      partial: true,
+      averageScore: null,
+      averageEvDelta: null,
+    });
+    expect(partial.body.session.alreadyCompleted).toBe(false);
+
+    const completedAt = partial.body.session.completedAt;
+
+    const again = await request(app.getHttpServer())
+      .post(`/api/training/sessions/${body.session.id}/complete`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(201);
+    expect(again.body.session.alreadyCompleted).toBe(true);
+    expect(again.body.session.completedAt).toBe(completedAt);
+
+    const session = await prisma.trainingSession.findUnique({ where: { id: body.session.id } });
+    expect(session?.status).toBe('COMPLETED');
+  });
+
+  it('reports the scored answer and source/version on completion', async () => {
+    const { token } = await authenticatedUser();
+    const body = await createSession(token);
+
+    await request(app.getHttpServer())
+      .post(`/api/training/sessions/${body.session.id}/questions/1/answers`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ actionType: 'RAISE', sizing: 2, idempotencyKey: 'complete-key-0001' })
+      .expect(201);
+
+    const response = await request(app.getHttpServer())
+      .post(`/api/training/sessions/${body.session.id}/complete`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(201);
+
+    expect(response.body).toMatchObject({
+      totalQuestions: 1,
+      answeredQuestions: 1,
+      partial: false,
+      averageScore: 1,
+      averageEvDelta: null,
+    });
+    expect(response.body.results[0]).toMatchObject({
+      position: 1,
+      spotKey: publishedSpotKey,
+      answered: true,
+      actionType: 'RAISE',
+      score: 1,
+      evDelta: null,
+      scoringVersion: 'mix-v1',
+    });
+  });
+
+  it('forbids completing or reading another user\'s session', async () => {
+    const owner = await authenticatedUser();
+    const body = await createSession(owner.token);
+    const stranger = await authenticatedUser();
+
+    await request(app.getHttpServer())
+      .post(`/api/training/sessions/${body.session.id}/complete`)
+      .set('Authorization', `Bearer ${stranger.token}`)
+      .expect(404);
+    await request(app.getHttpServer())
+      .get(`/api/training/sessions/${body.session.id}`)
+      .set('Authorization', `Bearer ${stranger.token}`)
+      .expect(404);
+  });
+
+  it('keeps history private and stable across sessions', async () => {
+    const first = await authenticatedUser();
+    const firstSession = await createSession(first.token);
+    await request(app.getHttpServer())
+      .post(`/api/training/sessions/${firstSession.session.id}/complete`)
+      .set('Authorization', `Bearer ${first.token}`)
+      .expect(201);
+
+    const history = await request(app.getHttpServer())
+      .get('/api/training/history')
+      .set('Authorization', `Bearer ${first.token}`)
+      .expect(200);
+    expect(history.body.sessions).toHaveLength(1);
+    expect(history.body.sessions[0]).toMatchObject({
+      id: firstSession.session.id,
+      status: 'COMPLETED',
+      totalQuestions: 1,
+    });
+
+    const second = await authenticatedUser();
+    const otherHistory = await request(app.getHttpServer())
+      .get('/api/training/history')
+      .set('Authorization', `Bearer ${second.token}`)
+      .expect(200);
+    expect(otherHistory.body.sessions).toHaveLength(0);
+  });
+
   it('returns a session summary with answered flags', async () => {
     const { token } = await authenticatedUser();
     const body = await createSession(token);

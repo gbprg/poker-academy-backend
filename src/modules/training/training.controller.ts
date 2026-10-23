@@ -45,6 +45,18 @@ export class TrainingController {
     return this.training.submitAnswer(request.user.id, sessionId, position, dto);
   }
 
+  @Post('sessions/:sessionId/complete')
+  @Header('Cache-Control', 'private, no-store')
+  complete(@Req() request: AuthenticatedRequest, @Param('sessionId') sessionId: string) {
+    return this.training.completeSession(request.user.id, sessionId);
+  }
+
+  @Get('history')
+  @Header('Cache-Control', 'private, no-store')
+  getHistory(@Req() request: AuthenticatedRequest) {
+    return this.training.getHistory(request.user.id);
+  }
+
   @Get('sessions/:sessionId/questions/:position')
   @Header('Cache-Control', 'private, no-store')
   getQuestion(
