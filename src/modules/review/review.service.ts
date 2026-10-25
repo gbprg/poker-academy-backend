@@ -8,7 +8,7 @@ export class ReviewService {
 
   async getDue(userId: string) {
     const now = new Date();
-    const items = await this.prisma.reviewItem.findMany({
+    const items = await (this.prisma as any).reviewItem.findMany({
       where: { userId, dueAt: { lte: now } },
       take: 50,
       orderBy: [{ dueAt: 'asc' }, { createdAt: 'asc' }],
@@ -37,13 +37,13 @@ export class ReviewService {
   }
 
   async answer(userId: string, dto: ReviewAnswerDto) {
-    const item = await this.prisma.reviewItem.findFirst({ where: { id: dto.reviewItemId, userId } });
+    const item = await (this.prisma as any).reviewItem.findFirst({ where: { id: dto.reviewItemId, userId } });
     if (!item) throw new NotFoundException('Item de revisão não encontrado.');
     const quality = dto.quality ?? 3;
     const interval = this.nextInterval(item.intervalDays, item.easeFactor.toString(), quality);
     const nextDue = new Date(Date.now() + interval.days * 24 * 60 * 60 * 1000);
 
-    const updated = await this.prisma.reviewItem.update({
+    const updated = await (this.prisma as any).reviewItem.update({
       where: { id: item.id },
       data: {
         intervalDays: interval.days,
