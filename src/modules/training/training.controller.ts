@@ -67,3 +67,9 @@ export class TrainingController {
     return this.training.getQuestion(request.user.id, sessionId, position);
   }
 }
+
+  @Post('quick')
+  @Header('Cache-Control', 'private, no-store')
+  quick(@Request() request: AuthenticatedRequest) {
+    return this.training.startQuick(request.user.id);
+  }
