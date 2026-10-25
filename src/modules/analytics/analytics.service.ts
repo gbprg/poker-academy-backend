@@ -34,15 +34,15 @@ export class AnalyticsService {
     });
 
     const map = new Map<string, { total: number; correct: number }>();
-    for (const a of attempts) {
-      const street = a.question?.session?.spot?.street ?? 'UNKNOWN';
+    for (const a of attempts as any[]) {
+      const street = a.question?.session?.spot?.street ?? "UNKNOWN";
       const cur = map.get(street) ?? { total: 0, correct: 0 };
       cur.total += 1;
       if (Number(a.score) >= 0.8) cur.correct += 1;
       map.set(street, cur);
     }
 
-    const items = Array.from(map.entries()).map(([street, v]) => ({
+    const items = Array.from(map.entries()).map(([street, v]: [string, any]) => ({
       street,
       total: v.total,
       correct: v.correct,
@@ -51,3 +51,4 @@ export class AnalyticsService {
 
     return { items };
   }
+}
