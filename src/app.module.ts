@@ -13,6 +13,7 @@ import { CoverageModule } from './modules/strategy-library/coverage/coverage.mod
 import { PostflopModule } from './modules/strategy-library/postflop/postflop.module.js';
 import { TrainingModule } from './modules/training/training.module.js';
 import { SituationsModule } from './modules/situations/situations.module.js';
+import { AnalyticsModule } from './modules/analytics/analytics.module.js';
 import { RATE_LIMITS } from './common/throttling.js';
 
 @Module({
@@ -39,6 +40,7 @@ import { RATE_LIMITS } from './common/throttling.js';
     PostflopModule,
     TrainingModule,
     SituationsModule,
+    AnalyticsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
