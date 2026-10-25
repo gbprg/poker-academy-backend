@@ -18,3 +18,9 @@ export class ReviewController {
     return this.review.getDue(request.user.id);
   }
 }
+
+  @Post('answer')
+  @Header('Cache-Control', 'private, no-store')
+  answer(@Request() request: AuthenticatedRequest, @Body() dto: ReviewAnswerDto) {
+    return this.review.answer(request.user.id, dto);
+  }
