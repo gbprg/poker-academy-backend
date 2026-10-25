@@ -35,13 +35,13 @@ export class ReviewService {
 
     return {
       count: eligible.length,
-      items: eligible.map((item) => ({
+      items: eligible.map((item: any) => ({
         id: item.id,
         spotId: item.spotId,
         strategyVersionId: item.strategyVersionId,
         nodeId: item.nodeId,
         dueAt: item.dueAt,
-        spot: spotByVersion.get(item.strategyVersionId) ?? null,
+        spot: spotByVersion.get(item.strategyVersionId) as any ?? null,
       })),
     };
   }
