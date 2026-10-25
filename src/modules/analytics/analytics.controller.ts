@@ -1,4 +1,4 @@
-import { Controller, Get, Header, UseGuards } from '@nestjs/common';
+import { Controller, Get, Header, Request, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
@@ -18,3 +18,9 @@ export class AnalyticsController {
     return this.analytics.overview(request.user.id);
   }
 }
+
+  @Get('by-street')
+  @Header('Cache-Control', 'private, no-store')
+  byStreet(@Request() request: AuthenticatedRequest) {
+    return this.analytics.byStreet(request.user.id);
+  }
