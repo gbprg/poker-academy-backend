@@ -9,31 +9,20 @@ export class ReviewService {
   async getDue(userId: string) {
     const now = new Date();
     const items = await this.prisma.reviewItem.findMany({
-      where: {
-        userId,
-        dueAt: { lte: now },
-      },
+      where: { userId, dueAt: { lte: now } },
       take: 50,
       orderBy: [{ dueAt: 'asc' }, { createdAt: 'asc' }],
     });
 
     const versionIds = [...new Set(items.map((item: any) => item.strategyVersionId))];
     const versions = await this.prisma.strategyVersion.findMany({
-      where: {
-        id: { in: versionIds },
-        status: 'PUBLISHED',
-      },
-      select: {
-        id: true,
-        spotId: true,
-        spot: { select: { spotKey: true, format: true, street: true, tableSize: true } },
-      },
+      where: { id: { in: versionIds }, status: 'PUBLISHED' },
+      select: { id: true, spotId: true, spot: { select: { spotKey: true, format: true, street: true, tableSize: true } } },
     });
-    const published = new Set(versions.map((version: any) => version.id));
-    const spotByVersion = new Map(versions.map((version: any) => [version.id, (version as any).spot]));
+    const published = new Set(versions.map((v: any) => v.id));
+    const spotByVersion = new Map(versions.map((v: any) => [v.id, (v as any).spot]));
 
     const eligible = items.filter((item: any) => published.has(item.strategyVersionId));
-
     return {
       count: eligible.length,
       items: eligible.map((item: any) => ({
@@ -48,14 +37,8 @@ export class ReviewService {
   }
 
   async answer(userId: string, dto: ReviewAnswerDto) {
-    const item = await this.prisma.reviewItem.findFirst({
-      where: { id: dto.reviewItemId, userId },
-    });
-
-    if (!item) {
-      throw new NotFoundException('Item de revisão não encontrado.');
-    }
-
+    const item = await this.prisma.reviewItem.findFirst({ where: { id: dto.reviewItemId, userId } });
+    if (!item) throw new NotFoundException('Item de revisão não encontrado.');
     const quality = dto.quality ?? 3;
     const interval = this.nextInterval(item.intervalDays, item.easeFactor.toString(), quality);
     const nextDue = new Date(Date.now() + interval.days * 24 * 60 * 60 * 1000);
@@ -72,23 +55,18 @@ export class ReviewService {
       },
     });
 
-    return {
-      item: {
-        id: updated.id,
-        dueAt: updated.dueAt,
-        intervalDays: updated.intervalDays,
-        repetitions: updated.repetitions,
-      },
-    };
+    return { item: { id: updated.id, dueAt: updated.dueAt, intervalDays: updated.intervalDays, repetitions: updated.repetitions } };
   }
 
   private nextInterval(intervalDays: number, easeFactor: string, quality: number) {
     let ef = Number(easeFactor);
-    if (quality < 3) {
-      return { days: 1, easeFactor: ef.toFixed(2) };
-    }
+    if (quality < 3) return { days: 1, easeFactor: ef.toFixed(2) };
     if (intervalDays < 6) {
-      const days = intervalDays === 1 ? 3 : intervalDays === 3 ? 7 : 7 : Math.max(1, intervalDays);
+      let days = intervalDays;
+      if (intervalDays === 1) days = 3;
+      else if (intervalDays === 3) days = 7;
+      else if (intervalDays === 7) days = 14;
+      else days = Math.max(1, intervalDays);
       ef = ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
       if (ef < 1.3) ef = 1.3;
       return { days, easeFactor: ef.toFixed(2) };
