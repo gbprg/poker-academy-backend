@@ -233,7 +233,8 @@ export class TrainingService {
         });
         return created;
       });
-            return this.toAnswerFeedback(attempt, false); catch (error) {
+      return this.toAnswerFeedback(attempt, false);
+    } catch (error) {
       if ((error as { code?: string }).code === 'P2002') {
         const original = await this.prisma.trainingAttempt.findFirst({
           where: { questionId: question.id, userId },
@@ -451,5 +452,4 @@ export class TrainingService {
       context: question.snapshot,
     };
   }
-}
 }
