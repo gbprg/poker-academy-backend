@@ -14,6 +14,7 @@ import { PostflopModule } from './modules/strategy-library/postflop/postflop.mod
 import { TrainingModule } from './modules/training/training.module.js';
 import { SituationsModule } from './modules/situations/situations.module.js';
 import { AnalyticsModule } from './modules/analytics/analytics.module.js';
+import { ProfileModule } from './modules/profile/profile.module.js';
 import { RATE_LIMITS } from './common/throttling.js';
 
 @Module({
@@ -41,6 +42,7 @@ import { RATE_LIMITS } from './common/throttling.js';
     TrainingModule,
     SituationsModule,
     AnalyticsModule,
+    ProfileModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
