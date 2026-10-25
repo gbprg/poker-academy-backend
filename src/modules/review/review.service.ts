@@ -14,15 +14,15 @@ export class ReviewService {
       orderBy: [{ dueAt: 'asc' }, { createdAt: 'asc' }],
     });
 
-    const versionIds = [...new Set(items.map((item: any) => item.strategyVersionId))];
+    const versionIds = [...new Set(items.map((item: any) => String(item.strategyVersionId)))];
     const versions = await this.prisma.strategyVersion.findMany({
       where: { id: { in: versionIds }, status: 'PUBLISHED' },
       select: { id: true, spotId: true, spot: { select: { spotKey: true, format: true, street: true, tableSize: true } } },
     });
-    const published = new Set(versions.map((v: any) => v.id));
+    const published = new Set(versions.map((v: any) => String(v.id)));
     const spotByVersion = new Map(versions.map((v: any) => [v.id, (v as any).spot]));
 
-    const eligible = items.filter((item: any) => published.has(item.strategyVersionId));
+    const eligible = items.filter((item: any) => published.has(String(item.strategyVersionId)));
     return {
       count: eligible.length,
       items: eligible.map((item: any) => ({
