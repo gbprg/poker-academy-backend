@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import type { EligibleCountDto } from './training.dto.js';
+import type { CreateTrainingPresetDto, EligibleCountDto, UpdateTrainingPresetDto } from './training.dto.js';
 
 @Injectable()
 export class TrainingService {
