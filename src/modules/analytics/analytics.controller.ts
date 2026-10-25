@@ -2,7 +2,6 @@ import { Controller, Get, Header, Request, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
-import { Request } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service.js';
 
 @ApiTags('analytics')
@@ -17,10 +16,10 @@ export class AnalyticsController {
   overview(@Request() request: AuthenticatedRequest) {
     return this.analytics.overview(request.user.id);
   }
-}
 
   @Get('by-street')
   @Header('Cache-Control', 'private, no-store')
   byStreet(@Request() request: AuthenticatedRequest) {
     return this.analytics.byStreet(request.user.id);
   }
+}
