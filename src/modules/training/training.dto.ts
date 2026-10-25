@@ -30,3 +30,16 @@ export class SubmitTrainingAnswerDto {
   @Length(8, 120)
   idempotencyKey!: string;
 }
+
+export class EligibleCountDto {
+  @IsOptional()
+  @IsString()
+  spotId?: string;
+
+  @IsOptional()
+  @IsString()
+  strategyVersionId?: string;
+
+  @IsOptional()
+  filters?: Record<string, unknown>;
+}
