@@ -14,7 +14,7 @@ export class ReviewService {
       orderBy: [{ dueAt: 'asc' }, { createdAt: 'asc' }],
     });
 
-    const versionIds = [...new Set(items.map((item: any) => String(item.strategyVersionId)))];
+    const versionIds: string[] = [...new Set(items.map((item: any) => String(item.strategyVersionId)))];
     const versions = await this.prisma.strategyVersion.findMany({
       where: { id: { in: versionIds }, status: 'PUBLISHED' },
       select: { id: true, spotId: true, spot: { select: { spotKey: true, format: true, street: true, tableSize: true } } },
