@@ -29,7 +29,9 @@ export class ReviewService {
       },
     });
     const published = new Set(versions.map((version) => version.id));
-    const spotByVersion = new Map(versions.map((version) => [version.id, version.spot]));
+    const spotByVersion = new Map(
+      versions.map((version) => [version.id, (version as any).spot]),
+    );
 
     const eligible = items.filter((item) => published.has(item.strategyVersionId));
 
@@ -41,7 +43,7 @@ export class ReviewService {
         strategyVersionId: item.strategyVersionId,
         nodeId: item.nodeId,
         dueAt: item.dueAt,
-        spot: spotByVersion.get(item.strategyVersionId) as any ?? null,
+        spot: spotByVersion.get(item.strategyVersionId) ?? null,
       })),
     };
   }
