@@ -43,3 +43,27 @@ export class EligibleCountDto {
   @IsOptional()
   filters?: Record<string, unknown>;
 }
+
+export class CreateTrainingPresetDto {
+  @IsString()
+  @Length(1, 80)
+  name!: string;
+
+  filters!: Record<string, unknown>;
+
+  @IsOptional()
+  scenario?: Record<string, unknown>;
+}
+
+export class UpdateTrainingPresetDto {
+  @IsOptional()
+  @IsString()
+  @Length(1, 80)
+  name?: string;
+
+  @IsOptional()
+  filters?: Record<string, unknown>;
+
+  @IsOptional()
+  scenario?: Record<string, unknown>;
+}
