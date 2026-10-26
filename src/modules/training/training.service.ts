@@ -233,6 +233,7 @@ export class TrainingService {
         });
         return created;
       });
+      await this.ensureReviewItem(userId, question, session);
       return this.toAnswerFeedback(attempt, false);
     } catch (error) {
       if ((error as { code?: string }).code === 'P2002') {
@@ -512,6 +513,43 @@ export class TrainingService {
       session: { id: session.id, status: session.status, createdAt: session.createdAt, completedAt: null, totalQuestions: 1 },
       question: { id: question.id, position: 1, answered: false, context: question.snapshot },
     };
+  }
+
+
+
+  private async ensureReviewItem(userId: string, question: any, session: any) {
+    try {
+      const spotId = session.spotId;
+      const versionId = session.strategyVersionId;
+      if (!spotId || !versionId) return;
+      const ver = await (this.prisma as any).strategyVersion.findFirst({
+        where: { id: versionId, status: 'PUBLISHED' },
+        select: { id: true },
+      });
+      if (!ver) return;
+      const nodeId = question.nodeId ?? null;
+      const exists = await (this.prisma as any).reviewItem.findFirst({
+        where: { userId, spotId, strategyVersionId: versionId, nodeId },
+      });
+      if (exists) return;
+      await (this.prisma as any).reviewItem.create({
+        data: {
+          id: randomUUID(),
+          userId,
+          spotId,
+          strategyVersionId: versionId,
+          nodeId,
+          dueAt: new Date(),
+          intervalDays: 1,
+          easeFactor: 2.5,
+          repetitions: 0,
+          lapses: 0,
+          updatedAt: new Date(),
+        },
+      });
+    } catch (e) {
+      // ignore
+    }
   }
 
 }
